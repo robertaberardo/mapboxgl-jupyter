@@ -911,3 +911,57 @@ class LinestringViz(VectorMixin, MapViz):
         else:
             options.update(geojson_data=json.dumps(self.data, ensure_ascii=False))
 
+class GenericViz(VectorMixin, MapViz):
+    """Create a generic map"""
+
+    def __init__(self,
+                 data,
+                 layer,
+                 color_property=None,
+                 color_stops=None,
+                 stroke_color='grey',
+                 stroke_width=0.1,
+                 legend_key_shape='circle',
+                 highlight_color='black',
+                 *args,
+                 **kwargs):
+        """Construct a Mapviz object
+
+        :param layer: Mapbox style layer object, without data and id keys
+        :param color_property: property to determine circle color
+        :param color_stops: property to determine circle color
+        :param color_default: property to determine default circle color if match lookup fails
+        :param color_function_type: property to determine `type` used by Mapbox to assign color
+        :param radius: radius of circle
+        :param stroke_color: color of circle stroke outline
+        :param stroke_width: with of circle stroke outline
+        :param highlight_color: color for feature selection, hover, or highlight
+
+        """
+        super(GenericViz, self).__init__(data, *args, **kwargs)
+
+        self.template = 'generic'
+        self.check_vector_template()
+
+        self.layer = layer
+        self.color_property = color_property
+        self.color_stops = color_stops
+        self.stroke_color = stroke_color
+        self.stroke_width = stroke_width
+        self.legend_key_shape = legend_key_shape
+        self.highlight_color = highlight_color
+
+    def add_unique_template_variables(self, options):
+        """Update map template variables specific to circle visual"""
+        options.update(dict(
+            geojson_data=json.dumps(self.data, ensure_ascii=False),
+            layer=json.dumps(self.layer, ensure_ascii=False),
+            colorProperty=self.color_property,
+            colorStops=self.color_stops,
+            strokeWidth=self.stroke_width,
+            strokeColor=self.stroke_color,
+            highlightColor=self.highlight_color
+        ))
+
+        if self.vector_source:
+            options.update(vectorColorStops=self.generate_vector_color_map())
